@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0947da46-0477-4e6a-919b-5b0108d5bac6" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="json-to-xmlFlow" doc:id="a4ab6823-3236-4d63-a73f-4730e82b9e53" >
+		<http:listener doc:name="Listener" doc:id="ed601cc8-a27c-4844-800b-a1a9b9b3574e" path="/jsontoxml" config-ref="HTTP_Listener_config"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="50cf0bea-ff23-40dd-8c72-bd8b7ea5bcf1" />
+		<logger level="INFO" doc:name="Logger" doc:id="a6b8925f-2a07-4279-8b07-0fd771a3dcf8" message="#[payload]"/>
+		<ee:transform doc:name="JSON TO XML" doc:id="b7529b07-7201-4f86-a238-f3758264b24a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[attributes.headers.sebhat]" doc:name="Set Variable" doc:id="b909fd45-0c8a-4726-b260-a4847c9f7ca6" variableName="senderName" />
+		<logger level="INFO" doc:name="Logger" doc:id="61e66cef-38e9-4995-8934-ef029ca5a23f" message="#[payload]"/>
+		<http:request method="POST" doc:name="Request" doc:id="acc7bf00-7aa0-4cb6-885a-892662a83376" config-ref="HTTP_Request_configuration" responseTimeout="300000" path="/xmltojson">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	tester : attributes.headers.tester
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	Reciver : attributes.queryParams.Reciver,
+	Date : attributes.quaryParams.Date
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="357a3a8e-cc6a-4222-b237-9f0e27305de1" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	headers:attributes.headers.tester,&#10;	queryparams1:attributes.queryParams.Receiver,&#10;	queryparams2:attributes.queryParams.Date&#10;}]" />
+		<file:write doc:name="Write" doc:id="52db8196-c323-4577-a436-5f9a2a3ea4b6" path="C:\Users\Sebhat Araya\AnypointStudio\studio-workspace\json-to-xml-api\globe-xml-to-javaFlow1.png"/>
+	</flow>
+</mule>
